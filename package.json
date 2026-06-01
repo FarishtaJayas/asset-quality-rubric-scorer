@@ -1,0 +1,15 @@
+{
+  "name": "asset-quality-rubric-scorer",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Asset Quality Rubric Scorer: deterministic Node.js serverless tool that scores a single CMP DAM asset's metadata against the Asset Quality Rubric.",
+  "main": "lib/scorer.js",
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "dev": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
