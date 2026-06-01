@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/discovery", "destination": "/api/discovery" },
+    { "source": "/tools/score-asset", "destination": "/api/tools/score-asset" }
+  ]
+}
