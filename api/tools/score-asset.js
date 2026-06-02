@@ -49,6 +49,37 @@ async function readJsonBody(req) {
   return JSON.parse(raw);
 }
 
+/** True when value is a non-empty trimmed string asset_id holder. */
+function hasAssetId(obj) {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.asset_id === "string" &&
+    obj.asset_id.trim() !== ""
+  );
+}
+
+/**
+ * Resolve the parameters object from the parsed body.
+ *
+ * Opal and some other MCP-style clients wrap tool parameters in an outer
+ * envelope rather than posting them at the top level. Try the common envelope
+ * keys before failing. Direct top-level POSTs (curl style) keep working because
+ * the top-level body is checked first.
+ */
+function resolveParams(body) {
+  if (hasAssetId(body)) {
+    return body;
+  }
+  const envelopeKeys = ["params", "parameters", "arguments", "input"];
+  for (const key of envelopeKeys) {
+    if (body && hasAssetId(body[key])) {
+      return body[key];
+    }
+  }
+  return body;
+}
+
 module.exports = async function handler(req, res) {
   applyCors(res);
 
@@ -75,8 +106,13 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Diagnostic: capture the actual incoming payload in Vercel function logs.
+  console.log(JSON.stringify(body));
+
+  const params = resolveParams(body);
+
   const assetId =
-    body && typeof body.asset_id === "string" ? body.asset_id.trim() : "";
+    params && typeof params.asset_id === "string" ? params.asset_id.trim() : "";
   if (assetId === "") {
     sendJson(res, 400, {
       error: "asset_id is required and must be a non-empty string."
@@ -84,6 +120,6 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const result = scoreAsset(body);
+  const result = scoreAsset(params);
   sendJson(res, 200, result);
 };
